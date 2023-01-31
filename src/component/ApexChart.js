@@ -70,6 +70,7 @@ export const ApexChart = () => {
           xaxis: {
             // min: new Date("19 Jun 2017").getTime(),
             // max: new Date("14 Aug 2017").getTime(),
+            // type: "datetime",
             min: moment(newData[0]).format("MM/DD/YYYY"),
             max: new Date(
               moment(newData[newData.length - 1]).format("DD MMM YYYY")
@@ -87,6 +88,7 @@ export const ApexChart = () => {
       },
       xaxis: {
         type: "datetime",
+        categories: newData,
         tooltip: {
           enabled: false,
         },
