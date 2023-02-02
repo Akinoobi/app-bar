@@ -24,6 +24,8 @@ export const ApexChart = () => {
   const newData = data.map((item) => {
     return item.Date;
   });
+  const [annotationTitle, setAnnotationTitle] = useState("")
+
   const newRevenue = data.map((item) => {
     return item.Revenue;
   });
@@ -79,6 +81,7 @@ export const ApexChart = () => {
               text: "This is a test 3",
             },
           },
+          
         ],
       },
       chart: {
@@ -91,9 +94,25 @@ export const ApexChart = () => {
         },
         events: {
           click: function (event, chartContext, config) {
+            console.log("click", chartContext);
             setOpenModal(true);
             // The last parameter config contains additional information like `seriesIndex` and `dataPointIndex` for cartesian charts
           },
+          dataPointSelection: function(event, chartContext, config) {
+            console.log("chartContext", event, "chartContext", chartContext);
+
+            // ...
+          },
+          xAxisLabelClick: function(event, chartContext, config) {
+            console.log("xAxisLabelClick", event, "chartContext", chartContext);
+
+            // ...
+          },
+          markerClick: function(event, chartContext, { seriesIndex, dataPointIndex, config}) {
+            console.log("markerClick", event, "chartContext", chartContext, "seriesIndex", seriesIndex, "dataPointIndex", dataPointIndex);
+
+            // ...
+          }
         },
         // brush: {
         //   enabled: false,
@@ -176,8 +195,12 @@ export const ApexChart = () => {
       },
     },
   };
-  console.log("test", openModal);
-  const onSubmit = () => {};
+  console.log("test", openModal, "data", annotationTitle);
+  const onSubmit = (e) => {
+    e.preventDefault();
+    setOpenModal(false)
+    console.log("event on saving", e.target.value);
+  };
   return (
     <>
       <ModalComponent
@@ -192,12 +215,13 @@ export const ApexChart = () => {
                 label="What annotation would you like to add?"
                 variant="outlined"
                 sx={{ m: 1, width: 380 }}
+                onChange={(e) => setAnnotationTitle(e.target.value)}
               />
               <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                 Make sure that you remember what you added another annotation.
               </Typography>
               <Grid display="flex" justifyContent="center" alignItems="center">
-                <Button variant="contained" onSubmit={onSubmit} size="medium">
+                <Button variant="contained" onClick={(e) => onSubmit(e)} size="medium">
                   <SaveIcon fontSize="inherit" /> Submit
                 </Button>
               </Grid>
