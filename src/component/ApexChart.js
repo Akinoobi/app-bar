@@ -1,9 +1,26 @@
+import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import moment from "moment/moment";
+import { useState } from "react";
 import ReactApexChart from "react-apexcharts";
-
+import SaveIcon from "@mui/icons-material/Save";
 import { data } from "../utils/const";
+import { ModalComponent } from "./Modal";
+const style = {
+  position: "absolute",
+  top: "50%",
+  left: "50%",
+  transform: "translate(-50%, -50%)",
+  width: 400,
+  bgcolor: "background.paper",
+  border: "2px solid #000",
+  boxShadow: 24,
+  p: 4,
+  flexDirection: "column",
+};
 
 export const ApexChart = () => {
+  const [openModal, setOpenModal] = useState(false);
+  const [errors, setError] = useState();
   const newData = data.map((item) => {
     return item.Date;
   });
@@ -71,6 +88,12 @@ export const ApexChart = () => {
         toolbar: {
           autoSelected: "pan",
           show: false,
+        },
+        events: {
+          click: function (event, chartContext, config) {
+            setOpenModal(true);
+            // The last parameter config contains additional information like `seriesIndex` and `dataPointIndex` for cartesian charts
+          },
         },
         // brush: {
         //   enabled: false,
@@ -153,28 +176,56 @@ export const ApexChart = () => {
       },
     },
   };
-
+  console.log("test", openModal);
+  const onSubmit = () => {};
   return (
-    <div id="wrapper">
-      <div id="chart-line2">
-        <ReactApexChart
-          key="chart-line2"
-          options={apexData.options}
-          series={apexData.series}
-          type="line"
-          height={280}
-          width={1000}
-        />
+    <>
+      <ModalComponent
+        isOpen={openModal}
+        handleModal={(isOpen) => setOpenModal(isOpen)}
+        errorHandler={(errorMessage) => setError(errorMessage)}
+        children={
+          <Grid container spacing={2}>
+            <Box component="form" sx={style} autoComplete="off">
+              <TextField
+                id="outlined-basic"
+                label="What annotation would you like to add?"
+                variant="outlined"
+                sx={{ m: 1, width: 380 }}
+              />
+              <Typography id="modal-modal-description" sx={{ mt: 2 }}>
+                Make sure that you remember what you added another annotation.
+              </Typography>
+              <Grid display="flex" justifyContent="center" alignItems="center">
+                <Button variant="contained" onSubmit={onSubmit} size="medium">
+                  <SaveIcon fontSize="inherit" /> Submit
+                </Button>
+              </Grid>
+            </Box>
+          </Grid>
+        }
+      />
+      <div id="wrapper">
+        <div id="chart-line2">
+          <ReactApexChart
+            key="chart-line2"
+            options={apexData.options}
+            series={apexData.series}
+            type="line"
+            height={280}
+            width={1000}
+          />
+        </div>
+        <div id="chart-line">
+          <ReactApexChart
+            options={apexData.optionsLine}
+            type="area"
+            series={apexData.seriesLine}
+            height={280}
+            width={1000}
+          />
+        </div>
       </div>
-      <div id="chart-line">
-        <ReactApexChart
-          options={apexData.optionsLine}
-          type="area"
-          series={apexData.seriesLine}
-          height={280}
-          width={1000}
-        />
-      </div>
-    </div>
+    </>
   );
 };
