@@ -1,10 +1,11 @@
 import { Box, Button, Grid, TextField, Typography } from "@mui/material";
 import moment from "moment/moment";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import ReactApexChart from "react-apexcharts";
 import SaveIcon from "@mui/icons-material/Save";
 import { data } from "../utils/const";
 import { ModalComponent } from "./Modal";
+import { getRandomColor } from "../utils/common";
 const style = {
   position: "absolute",
   top: "50%",
@@ -20,15 +21,74 @@ const style = {
 
 export const ApexChart = () => {
   const [openModal, setOpenModal] = useState(false);
+  const [isSubmit, setIsSubmit] = useState(false);
+  const [index, setIndex] = useState(null);
   const [errors, setError] = useState();
   const newData = data.map((item) => {
     return item.Date;
   });
   const [annotationTitle, setAnnotationTitle] = useState("")
+  const positionTitle = ["horizontal", "vertical"]
 
+  const [xAnnotationData, setXAnnotationData] = useState(
+    [
+      {
+        x: new Date(moment(newData[20]).format("MM/DD/YYYY")).getTime(),
+        // x2: newRevenue[newRevenue.length - 1],
+        borderColor: "#775DD0",
+        label: {
+          style: {
+            color: "#fff",
+            background: "#775DD0",
+          },
+          text: "This is a test2",
+        },
+      },
+      {
+        x: new Date(moment(newData[40]).format("MM/DD/YYYY")).getTime(),
+        borderColor: "#FEB019",
+        label: {
+          borderColor: "#FEB019",
+          style: {
+            color: "#fff",
+            background: "#FEB019",
+          },
+          orientation: "horizontal",
+          text: "This is a test 3",
+        },
+      },
+    ],
+  )
   const newRevenue = data.map((item) => {
     return item.Revenue;
   });
+  useEffect(() => {
+    if (!isSubmit) return
+    const randomPosition = Math.floor(Math.random() * positionTitle.length)
+    setXAnnotationData(prev => {
+      let temp = prev
+
+      temp.push(
+        {
+          x: new Date(moment(newData[index]).format("MM/DD/YYYY")).getTime(),
+          borderColor: `${getRandomColor()}`,
+          label: {
+            borderColor: `${getRandomColor()}`,
+            style: {
+              color: "#fff",
+              background: `${getRandomColor()}`,
+            },
+            orientation: positionTitle[randomPosition],
+            text: annotationTitle,
+          },
+        }
+      )
+      return [...temp]
+    })
+    setAnnotationTitle("")
+    setIndex(null)
+    setIsSubmit(false)
+  }, [index, isSubmit])
   const apexData = {
     series: [
       {
@@ -55,34 +115,7 @@ export const ApexChart = () => {
             },
           },
         ],
-        xaxis: [
-          {
-            x: new Date(moment(newData[20]).format("MM/DD/YYYY")).getTime(),
-            // x2: newRevenue[newRevenue.length - 1],
-            borderColor: "#775DD0",
-            label: {
-              style: {
-                color: "#fff",
-                background: "#775DD0",
-              },
-              text: "This is a test2",
-            },
-          },
-          {
-            x: new Date(moment(newData[40]).format("MM/DD/YYYY")).getTime(),
-            borderColor: "#FEB019",
-            label: {
-              borderColor: "#FEB019",
-              style: {
-                color: "#fff",
-                background: "#FEB019",
-              },
-              orientation: "horizontal",
-              text: "This is a test 3",
-            },
-          },
-          
-        ],
+        xaxis: xAnnotationData
       },
       chart: {
         id: "chart2",
@@ -92,25 +125,47 @@ export const ApexChart = () => {
           autoSelected: "pan",
           show: false,
         },
+        animations: {
+          enabled: true,
+          easing: 'linear',
+          dynamicAnimation: {
+            speed: 1000
+          }
+        },
         events: {
           click: function (event, chartContext, config) {
-            console.log("click", chartContext);
             setOpenModal(true);
             // The last parameter config contains additional information like `seriesIndex` and `dataPointIndex` for cartesian charts
           },
-          dataPointSelection: function(event, chartContext, config) {
-            console.log("chartContext", event, "chartContext", chartContext);
+          dataPointSelection: function (event, chartContext, config) {
+            // ...
+          },
+          xAxisLabelClick: function (event, chartContext, config) {
 
             // ...
           },
-          xAxisLabelClick: function(event, chartContext, config) {
-            console.log("xAxisLabelClick", event, "chartContext", chartContext);
-
-            // ...
+          mounted: function(chartContext, config) {
+            console.log("mounted",chartContext, "config", config) 
+            
           },
-          markerClick: function(event, chartContext, { seriesIndex, dataPointIndex, config}) {
-            console.log("markerClick", event, "chartContext", chartContext, "seriesIndex", seriesIndex, "dataPointIndex", dataPointIndex);
-
+          markerClick: function (event, chartContext, { seriesIndex, dataPointIndex, config }) {
+            setIndex(dataPointIndex)
+            
+            //   setXAnnotationData([...xAnnotationData,
+            //     {
+            //     x: new Date(moment(newData[dataPointIndex]).format("MM/DD/YYYY")).getTime(),
+            //     borderColor: "#FEB019",
+            //     label: {
+            //       borderColor: "#FEB019",
+            //       style: {
+            //         color: "#fff",
+            //         background: "#FEB019",
+            //       },
+            //       orientation: "horizontal",
+            //       text: annotationTitle,
+            //     },
+            //   }
+            // ])
             // ...
           }
         },
@@ -118,6 +173,9 @@ export const ApexChart = () => {
         //   enabled: false,
         //   autoScaleYaxis: true,
         // },
+      },
+      noData: {
+        text: 'Loading...'
       },
       colors: ["#546E7A"],
       stroke: {
@@ -195,27 +253,42 @@ export const ApexChart = () => {
       },
     },
   };
-  console.log("test", openModal, "data", annotationTitle);
   const onSubmit = (e) => {
     e.preventDefault();
     setOpenModal(false)
-    console.log("event on saving", e.target.value);
+    setIsSubmit(true);
+   
   };
   return (
     <>
       <ModalComponent
         isOpen={openModal}
-        handleModal={(isOpen) => setOpenModal(isOpen)}
+        handleModal={(isOpen) => {
+          setOpenModal(isOpen)
+          setIsSubmit(false)
+          setAnnotationTitle((prev) => {
+            let prevData = prev
+            prevData = ""
+            return prevData
+          })
+        }}
         errorHandler={(errorMessage) => setError(errorMessage)}
         children={
           <Grid container spacing={2}>
             <Box component="form" sx={style} autoComplete="off">
               <TextField
+                value={annotationTitle}
                 id="outlined-basic"
+                type="text"
                 label="What annotation would you like to add?"
                 variant="outlined"
                 sx={{ m: 1, width: 380 }}
-                onChange={(e) => setAnnotationTitle(e.target.value)}
+                autoComplete='off'
+                onChange={(e) => {
+                  e.preventDefault()
+                  setAnnotationTitle(e.target.value)
+                }
+                }
               />
               <Typography id="modal-modal-description" sx={{ mt: 2 }}>
                 Make sure that you remember what you added another annotation.
