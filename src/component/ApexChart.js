@@ -22,7 +22,7 @@ const style = {
 export const ApexChart = () => {
   const [openModal, setOpenModal] = useState(false);
   const [isSubmit, setIsSubmit] = useState(false);
-  const [index, setIndex] = useState(null);
+  const [index, setIndex] = useState(0);
   const [errors, setError] = useState();
   const newData = data.map((item) => {
     return item.Date;
@@ -63,14 +63,14 @@ export const ApexChart = () => {
     return item.Revenue;
   });
   useEffect(() => {
-    if (!isSubmit) return
+    if (isSubmit) {
     const randomPosition = Math.floor(Math.random() * positionTitle.length)
     setXAnnotationData(prev => {
       let temp = prev
 
       temp.push(
         {
-          x: new Date(moment(newData[index]).format("MM/DD/YYYY")).getTime(),
+          x: new Date(moment(newData[index.dataPointIndex]).format("MM/DD/YYYY")).getTime(),
           borderColor: `${getRandomColor()}`,
           label: {
             borderColor: `${getRandomColor()}`,
@@ -86,8 +86,9 @@ export const ApexChart = () => {
       return [...temp]
     })
     setAnnotationTitle("")
-    setIndex(null)
+    // setIndex(0)
     setIsSubmit(false)
+  }
   }, [index, isSubmit])
   const apexData = {
     series: [
@@ -149,7 +150,9 @@ export const ApexChart = () => {
             
           },
           markerClick: function (event, chartContext, { seriesIndex, dataPointIndex, config }) {
-            setIndex(dataPointIndex)
+            event.preventDefault();
+            console.log("dataPointIndex", dataPointIndex, "seriesIndex", seriesIndex)
+            setIndex({dataPointIndex: dataPointIndex, seriesIndex: seriesIndex})
             
             //   setXAnnotationData([...xAnnotationData,
             //     {
